@@ -4,7 +4,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV HOME=/home/agent
 ENV WORKDIR=/workspace
 
-# Dependencias necesarias para instalar code-server
+# Instala dependencias necesarias
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     ca-certificates \
@@ -12,15 +12,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     sudo \
     && rm -rf /var/lib/apt/lists/*
 
-# Crea un usuario no privilegiado equivalente al usuario del sandbox
+# Crea el usuario no privilegiado.
+# No se fija UID=1000 porque Ubuntu ya puede tenerlo ocupado.
 RUN useradd --create-home --shell /bin/bash agent \
     && mkdir -p /workspace \
     && chown -R agent:agent /workspace /home/agent
 
-# Instala code-server desde el instalador oficial
+# Instala code-server mediante el script oficial
 RUN curl -fsSL https://code-server.dev/install.sh | sh
 
-# Instala la extensión Claude Code como el usuario agent
+# Instala la extensión de Claude Code para code-server
 USER agent
 
 RUN code-server --install-extension anthropic.claude-code
@@ -29,6 +30,5 @@ WORKDIR /workspace
 
 EXPOSE 8080
 
-# Inicia VS Code web en el puerto 8080.
-# ATENCIÓN: --auth none deja el servidor sin contraseña.
+# Inicia VS Code web en el puerto 8080
 CMD ["sh", "-c", "code-server --bind-addr 0.0.0.0:8080 --auth none \"${WORKDIR:-/workspace}\""]
