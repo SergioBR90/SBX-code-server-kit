@@ -1,30 +1,40 @@
-name: Exportar imagen Docker
+name: Construir y exportar Code Server
 
 on:
   workflow_dispatch:
 
 jobs:
-  exportar:
+  construir-y-exportar:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Descargar imagen desde Docker Hub
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Construir imagen Docker
         run: |
-          docker pull sbx/code-server-kit:latest
+          docker build \
+            --tag mi-code-server:latest \
+            .
+
+      - name: Verificar imagen creada
+        run: |
+          docker images mi-code-server:latest
+          docker image inspect mi-code-server:latest
 
       - name: Exportar imagen a archivo TAR
         run: |
           docker save \
-            --output sbx-code-server-kit.tar \
-            sbx/code-server-kit:latest
+            --output mi-code-server.tar \
+            mi-code-server:latest
 
-      - name: Comprimir la imagen
+      - name: Comprimir imagen
         run: |
-          gzip -9 sbx-code-server-kit.tar
+          gzip -9 mi-code-server.tar
 
       - name: Publicar archivo como artefacto
         uses: actions/upload-artifact@v4
         with:
-          name: sbx-code-server-kit
-          path: sbx-code-server-kit.tar.gz
+          name: mi-code-server-docker-image
+          path: mi-code-server.tar.gz
           retention-days: 7
