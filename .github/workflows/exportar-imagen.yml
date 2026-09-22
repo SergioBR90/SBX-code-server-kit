@@ -1,0 +1,30 @@
+name: Exportar imagen Docker
+
+on:
+  workflow_dispatch:
+
+jobs:
+  exportar:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar imagen desde Docker Hub
+        run: |
+          docker pull sbx/code-server-kit:latest
+
+      - name: Exportar imagen a archivo TAR
+        run: |
+          docker save \
+            --output sbx-code-server-kit.tar \
+            sbx/code-server-kit:latest
+
+      - name: Comprimir la imagen
+        run: |
+          gzip -9 sbx-code-server-kit.tar
+
+      - name: Publicar archivo como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbx-code-server-kit
+          path: sbx-code-server-kit.tar.gz
+          retention-days: 7
